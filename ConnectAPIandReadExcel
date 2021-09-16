@@ -1,0 +1,190 @@
+//<!-- dependencies:   http: <latest_version> -->
+
+
+import 'dart:io';
+import 'package:path/path.dart';
+import 'package:excel/excel.dart';
+//Add the http package
+import 'package:http/http.dart' as http;
+//Make a network request
+Future<http.Response> fetchfactures() {
+  return http.get(Uri.parse('https://http://192.168.2.115:8000/api/factures'));
+}
+
+//Convert the response into a custom Dart object
+
+class factures {
+  final int Numero;
+  final String Date;
+  final int Nom_Article;
+  final int Unite_de_Mesure;
+  final int Qte;
+  final String Pu;
+  final int Pt;
+  final int Facture;
+  final String Client;
+  final int Point;
+
+
+  factures({
+    required this.Numero,
+    required this.Date,
+    required this.Nom_Article,
+    required this.Unite_de_Mesure,
+    required this.Qte,
+    required this.Pu,
+    required this.Pt,
+    required this.Facture,
+    required this.Client,
+    required this.Point,
+    
+  });
+
+  factory factures.fromJson(Map<String, dynamic> json) {
+    return factures(
+      userId: json['Numero'],
+      id: json['Date'],
+      title: json['Nom_Article'],
+      userId: json['Unite_de_Mesure'],
+      id: json['Qte'],
+      title: json['Pu'],
+      userId: json['Pt'],
+      id: json['Facture'],
+      title: json['Client'],
+      title: json['Point'],
+    );
+  }
+}
+
+
+//Convert the http.Response to an factures
+
+Future<factures> fetchfactures() async {
+  final response = await http
+      .get(Uri.parse('https://http://192.168.2.115:8000/api/factures'));
+
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    return factures.fromJson(jsonDecode(response.body));
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to load factures');
+  }
+}
+
+//Fetch the data
+
+
+class _MyAppState extends State<MyApp> {
+  late Future<factures> futurefactures;
+
+ @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'factures',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('factures'),
+        ),
+        body: Center(
+          child: FutureBuilder<factures>(
+            future: futurefactures,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Text(snapshot.data!.title);
+              } else if (snapshot.hasError) {
+                return Text('${snapshot.error}');
+              }
+
+              // By default, show a loading spinner.
+              return const CircularProgressIndicator();
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+//Usage of Excel in Flutter
+
+excel.updateCell('data', CellIndex.indexByString("A2"),
+ "1000001", backgroundColorHex: "#1AFF1A", horizontalAlign: HorizontalAlign.Right);
+    
+    // Now in the above code wrap the optional arguments with CellStyle() and pass it to optional cellStyle parameter.
+    // So the resulting code will look like
+    
+    excel.updateCell('data', CellIndex.indexByString("A2"), "1000001", cellStyle: CellStyle( backgroundColorHex: "#1AFF1A", horizontalAlign: HorizontalAlign.Right ) );
+    
+//Read XLSX File
+var file = "E:\Destin\LE BOULOT\data.xlsx";
+    var bytes = File(file).readAsBytesSync();
+    var excel = Excel.decodeBytes(bytes);
+    
+    for (var table in excel.tables.keys) {
+      print(data); //sheet Name
+      print(excel.tables[table].maxCols);
+      print(excel.tables[table].maxRows);
+      for (var row in excel.tables[table].rows) {
+        print("$row");
+      }
+    }
+
+    //Read XLSX from Flutter's Asset Folder 
+    import 'package:flutter/services.dart' show ByteData, rootBundle;
+    
+       
+    ByteData data = await rootBundle.load("assets/existing_excel_file.xlsx");
+    var bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+    var excel = Excel.decodeBytes(bytes, update: true);
+        
+    for (var table in excel.tables.keys) {
+      print(table); //sheet Name
+      print(excel.tables[table].maxCols);
+      print(excel.tables[table].maxRows);
+      for (var row in excel.tables[table].rows) {
+        print("$row");
+      }
+    }
+
+//Update Cell values 
+/* 
+      * sheetObject.updateCell(cell, value, { CellStyle (Optional)});
+      * sheetObject created by calling - // Sheet sheetObject = excel['SheetName'];
+      * cell can be identified with Cell Address or by 2D array having row and column Index;
+      * Cell Style options are optional
+      */
+      
+      Sheet sheetObject = excel['data'];
+      
+      CellStyle cellStyle = CellStyle(backgroundColorHex: "#1AFF1A", fontFamily : getFontFamily(FontFamily.Calibri));
+      
+      cellStyle.underline = Underline.Single; // or Underline.Double
+      
+      
+      var cell = sheetObject.cell(CellIndex.indexByString("A1"));
+      cell.value = 8; // dynamic values support provided;
+      cell.cellStyle = cellStyle;
+      
+      // printing cell-type
+      print("CellType: "+ cell.cellType.toString());
+      
+      ///
+      /// Inserting and removing column and rows
+      
+      // insert column at index = 8
+      sheetObject.insertColumn(8);
+      
+      // remove column at index = 18
+      sheetObject.removeColumn(18);
+      
+      // insert row at index = 82
+      sheetObject.removeRow(82);
+      
+      // remove row at index = 80
+      sheetObject.removeRow(80);
